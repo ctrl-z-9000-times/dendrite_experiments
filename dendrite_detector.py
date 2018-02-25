@@ -153,9 +153,9 @@ class DendriteDetector(AnomalyDetector):
       finalScore = 1.0
 
     if False:
+        # Plot correlation of excitement versus compartmentalization.
         if self.age == 0:
             print("Correlation Plots ENABLED.")
-        # Plot correlation of excitement versus compartmentalization.
         if False:
             start_age = 1000
             end_age   = 1800
@@ -190,6 +190,59 @@ class DendriteDetector(AnomalyDetector):
                     continue
                 plt.figure("Sample %d"%idx)
                 smplr.plot(period = 64)  # Different value!
+            plt.show()
+
+    if False:
+        # Plot excitement of a typical detection on a dendrite.
+        if self.age == 7265:
+        #if self.age == 1800:
+            import matplotlib.pyplot as plt
+            import random
+            from connections import SYN_CONNECTED_ACTIVE
+            sampled_cells = set()
+            for figure_num in xrange(40):
+                plt.figure("(%d)"%figure_num)
+                # Find an active cell to view.
+                cell = None
+                for attempt in range(100):
+                    event = random.choice(self.tm.activeEvents)
+                    cell  = event.cell   # This is an integer.
+                    if cell is not None and cell not in sampled_cells:
+                        break
+                else:
+                    break
+                sampled_cells.add(cell)
+                cell = self.tm.connections.dataForCell(cell)
+                # Organize the data.
+                EPSPs      = []
+                excitement = []
+                distance_to_root = 0
+                segment_offsets  = {}
+                branch = cell._roots[0]
+                while True:
+                    segment_offsets[branch] = distance_to_root
+                    distance_to_root += len(branch._synapses)
+                    excitement.extend(branch.excitement)
+                    for syn in branch._synapses:
+                        if syn is None:
+                            EPSPs.append(0)
+                        else:
+                            EPSPs.append(syn.state == SYN_CONNECTED_ACTIVE)
+                    if branch.children:
+                        branch = random.choice(branch.children)
+                    else:
+                        break
+                plt.plot(np.arange(distance_to_root), EPSPs, 'r',
+                         np.arange(distance_to_root), excitement, 'b',)
+                plt.title("Dendrite Activation\n Horizontal line is activation threshold, Vertical lines are segment bifurcations")
+                plt.xlabel("Distance along Dendrite", )
+                plt.ylabel("EPSPs are Red, Excitement is Blue")
+                # Show lines where the excitement crosses thresholds.
+                plt.axhline(20, color='k') # Hard coded parameter value.
+                for offset in segment_offsets.values():
+                    if offset != 0:
+                        plt.axvline(offset, color='k')
+            print("\nShowing %d excitement plots."%len(sampled_cells))
             plt.show()
 
     self.age += 1

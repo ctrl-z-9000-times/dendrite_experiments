@@ -782,6 +782,10 @@ class Connections(Serializable):
     thresholds = [minThreshold, activationThreshold]
     assert(thresholds == sorted(thresholds))
 
+    for cell in self._cells:
+      for dendrite in cell._roots:
+        dendrite.reset_synapses()
+
     for cell in activePresynapticCells:
       for synapse in self._synapsesForPresynapticCell[cell]:
         if synapse.permanence > permanence_threshold:
@@ -794,7 +798,6 @@ class Connections(Serializable):
         learn, actv = dendrite.compute_residual(segmentSize, thresholds)
         active_events.extend(actv)
         learning_events.extend(learn)
-        dendrite.reset_synapses()
 
     return (active_events, learning_events)
 
