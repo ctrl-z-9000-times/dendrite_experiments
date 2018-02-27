@@ -1,4 +1,5 @@
-# dendrite_experiments
+# Dynamic Compartmentalization in HTM Dendrites
+See file: dendrites.pdf
 
 ## Installation and Run instructions:
 1) Install Nupic(v1.0.3) and NAB
